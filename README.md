@@ -1,5 +1,7 @@
 # libaes
 
+[![Build](https://github.com/keepsimple1/libaes/workflows/Build%20and%20RTest/badge.svg)](https://github.com/keepsimple1/libaes/actions)
+
 This is a re-implementation of OpenSSL 1.1.1 AES core algorithms in safe Rust, with zero dependencies.
 
 My original motivation is to find a correct, fast and minimal AES library in Rust, so that I can easily use it to 
