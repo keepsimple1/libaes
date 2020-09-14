@@ -1,0 +1,9 @@
+[package]
+name = "libaes"
+version = "0.1.0"
+authors = ["Han Xu <keepsimple@gmail.com>"]
+edition = "2018"
+description = "AES cipher in safe Rust"
+license = "Apache-2.0 OR MIT"
+keywords = ["crypto", "aes"]
+readme = "README.md"
