@@ -1,6 +1,7 @@
 # libaes
 
 [![Build](https://github.com/keepsimple1/libaes/workflows/Build%20and%20Test/badge.svg)](https://github.com/keepsimple1/libaes/actions)
+[![Cargo](https://img.shields.io/crates/v/libaes.svg)](https://crates.io/crates/libaes)
 
 This is a re-implementation of OpenSSL 1.1.1 AES core algorithms in safe Rust, with zero dependencies.
 
