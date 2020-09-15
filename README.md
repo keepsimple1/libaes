@@ -15,7 +15,7 @@ This library strives to be:
 - Safe Rust code only.
 - Minimal: no dependencies.
 
-In v0.1.0, this library only supports 128-bit key with CBC mode. Automatic padding is included.
+In this version, this library supports 128-bit and 256-bit keys with CBC mode only. Automatic padding is included.
 
 ## Examples
 
