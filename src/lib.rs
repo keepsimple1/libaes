@@ -12,7 +12,7 @@
 //! - Zero dependencies.
 //! - Fast (as the C version).
 //!
-//! In this version, this cipher supports 128-bit keys in CBC mode only.
+//! In this version, this cipher supports 128-bit and 256-bit keys in CBC mode only.
 //!
 //! # Examples
 //!
@@ -23,7 +23,7 @@
 //! let plaintext = b"A plaintext";
 //! let iv = b"This is 16 bytes";
 //!
-//! // Create a new cipher
+//! // Create a new 128-bit cipher
 //! let cipher = Cipher::new_128(my_key);
 //!
 //! // Encryption
@@ -35,6 +35,8 @@
 
 /// 128-bit are 16 bytes
 pub const AES_128_KEY_LEN: usize = 16;
+/// 256-bit are 32 bytes
+pub const AES_256_KEY_LEN: usize = 32;
 
 const AES_BLOCK_SIZE: usize = 16; // in bytes
 const AES_MAX_ROUNDS: usize = 14; // 14 rounds for 256-bit keys
@@ -69,6 +71,29 @@ impl Cipher {
 
         let mut decrypt_key = AesKey { rd_key: [0; RD_KEY_MAX_SIZE], rounds: 0 };
         aes_set_decrypt_key(user_key, 128, &mut decrypt_key);
+
+        Cipher { encrypt_key, decrypt_key }
+    }
+
+    /// Create an AES 256-bit cipher with a given key.
+    ///
+    /// Once created, a cipher can encrypt or decrypt any times of data using the same key.
+    /// `user_key` must be at length of 256-bits, i.e. 32 bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use libaes::Cipher;
+    ///
+    /// let my_key = b"This is the key!This is the key!"; // 32 bytes
+    /// let cipher = Cipher::new_256(my_key);
+    /// ```
+    pub fn new_256(user_key: &[u8; AES_256_KEY_LEN]) -> Cipher {
+        let mut encrypt_key = AesKey { rd_key: [0; RD_KEY_MAX_SIZE], rounds: 0 };
+        aes_set_encrypt_key(user_key, 256, &mut encrypt_key);
+
+        let mut decrypt_key = AesKey { rd_key: [0; RD_KEY_MAX_SIZE], rounds: 0 };
+        aes_set_decrypt_key(user_key, 256, &mut decrypt_key);
 
         Cipher { encrypt_key, decrypt_key }
     }
@@ -870,7 +895,7 @@ fn aes_set_encrypt_key(user_key: &[u8], key_bits: u16, key: &mut AesKey) {
             rk[14] = rk[6] ^ rk[13];
             rk[15] = rk[7] ^ rk[14];
 
-            rk = &mut rk[6..];
+            rk = &mut rk[8..];
         }
     }
 }
