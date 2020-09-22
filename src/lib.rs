@@ -12,14 +12,14 @@
 //! - Zero dependencies.
 //! - Fast (as the C version).
 //!
-//! In this version, this cipher supports 128-bit and 256-bit keys in CBC mode only.
+//! Currently, this cipher supports 128-bit, 192-bit and 256-bit keys in CBC mode only.
 //!
 //! # Examples
 //!
 //! ```
 //! use libaes::Cipher;
 //!
-//! let my_key = b"This is the key!"; // key is 16 bytes
+//! let my_key = b"This is the key!"; // key is 16 bytes, i.e. 128-bit
 //! let plaintext = b"A plaintext";
 //! let iv = b"This is 16 bytes";
 //!
@@ -35,6 +35,8 @@
 
 /// 128-bit are 16 bytes
 pub const AES_128_KEY_LEN: usize = 16;
+/// 192-bit are 24 bytes
+pub const AES_192_KEY_LEN: usize = 24;
 /// 256-bit are 32 bytes
 pub const AES_256_KEY_LEN: usize = 32;
 
@@ -75,6 +77,29 @@ impl Cipher {
         Cipher { encrypt_key, decrypt_key }
     }
 
+    /// Create an AES 192-bit cipher with a given key.
+    ///
+    /// Once created, a cipher can encrypt or decrypt any times of data using the same key.
+    /// `user_key` must be at length of 192-bits, i.e. 24 bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use libaes::Cipher;
+    ///
+    /// let my_key = b"This is the key! 192 bit"; // 24 bytes
+    /// let cipher = Cipher::new_192(my_key);
+    /// ```
+    pub fn new_192(user_key: &[u8; AES_192_KEY_LEN]) -> Cipher {
+        let mut encrypt_key = AesKey { rd_key: [0; RD_KEY_MAX_SIZE], rounds: 0 };
+        aes_set_encrypt_key(user_key, 192, &mut encrypt_key);
+
+        let mut decrypt_key = AesKey { rd_key: [0; RD_KEY_MAX_SIZE], rounds: 0 };
+        aes_set_decrypt_key(user_key, 192, &mut decrypt_key);
+
+        Cipher { encrypt_key, decrypt_key }
+    }
+
     /// Create an AES 256-bit cipher with a given key.
     ///
     /// Once created, a cipher can encrypt or decrypt any times of data using the same key.
@@ -102,6 +127,8 @@ impl Cipher {
     ///
     /// The input data is not modified. The output is a new Vec. Padding is done automatically.
     /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
+    ///
+    /// This method works for all key sizes.
     ///
     /// # Examples
     ///
@@ -132,6 +159,8 @@ impl Cipher {
     ///
     /// The input data is not modified. The output is a new Vec. Padding is handled automatically.
     /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
+    ///
+    /// This method works for all key sizes.
     ///
     /// # Examples
     ///

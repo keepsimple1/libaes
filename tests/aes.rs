@@ -29,6 +29,34 @@ fn nist_verify_aes_128_cbc() {
 }
 
 #[test]
+fn nist_verify_aes_192_cbc() {
+    // Verify the implementation's correctness using NIST Special Publication 800-38A:
+    // http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf
+    // Appendix F.2.3 and F.2.4 CBC Example Vectors for 192-bit
+    const NIST_CBC_KEY: &[u8; 24] =
+        b"\x8e\x73\xb0\xf7\xda\x0e\x64\x52\xc8\x10\xf3\x2b\x80\x90\x79\xe5\
+        \x62\xf8\xea\xd2\x52\x2c\x6b\x7b";
+    let iv = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f";
+    let plaintext  = b"\x6b\xc1\xbe\xe2\x2e\x40\x9f\x96\xe9\x3d\x7e\x11\x73\x93\x17\x2a\
+                       \xae\x2d\x8a\x57\x1e\x03\xac\x9c\x9e\xb7\x6f\xac\x45\xaf\x8e\x51\
+                       \x30\xc8\x1c\x46\xa3\x5c\xe4\x11\xe5\xfb\xc1\x19\x1a\x0a\x52\xef\
+                       \xf6\x9f\x24\x45\xdf\x4f\x9b\x17\xad\x2b\x41\x7b\xe6\x6c\x37\x10";
+    let ciphertext = b"\x4f\x02\x1d\xb2\x43\xbc\x63\x3d\x71\x78\x18\x3a\x9f\xa0\x71\xe8\
+                       \xb4\xd9\xad\xa9\xad\x7d\xed\xf4\xe5\xe7\x38\x76\x3f\x69\x14\x5a\
+                       \x57\x1b\x24\x20\x12\xfb\x7a\xe0\x7f\xa9\xba\xac\x3d\xf1\x02\xe0\
+                       \x08\xb0\xe2\x79\x88\x59\x88\x81\xd9\x20\xa9\xe6\x4f\x56\x15\xcd";
+    let cipher = Cipher::new_192(NIST_CBC_KEY);
+    let encrypted = cipher.cbc_encrypt(iv, plaintext);
+    let len_without_padding = 16 * 4;
+    let padding_size = 16;
+    assert_eq!(encrypted.len(), len_without_padding + padding_size);
+    assert_eq!(encrypted[..len_without_padding], ciphertext[..]);
+
+    let decrypted = cipher.cbc_decrypt(iv, &encrypted[..]);
+    assert_eq!(decrypted[..], plaintext[..]);
+}
+
+#[test]
 fn nist_verify_aes_256_cbc() {
     // Verify the implementation's correctness using NIST Special Publication 800-38A:
     // http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf
@@ -76,6 +104,15 @@ fn small_data() {
     assert_ne!(encrypted_256[..], encrypted_128[..]); // Verify AES-256 is different from AES-128
     let decrypted_256 = cipher.cbc_decrypt(iv, &encrypted_256[..]);
     assert_eq!(decrypted_256[..], plaintext[..]);
+
+    // Test with AES-192
+    let key_192 = b"This is the key! 192 bit";
+    let cipher = Cipher::new_192(key_192);
+    let encrypted_192 = cipher.cbc_encrypt(iv, plaintext);
+    assert_eq!(encrypted_192.len(), 16); // Verify padding
+    assert_ne!(encrypted_192[..], encrypted_256[..]); // Verify AES-192 is different from AES-256
+    let decrypted_192 = cipher.cbc_decrypt(iv, &encrypted_192[..]);
+    assert_eq!(decrypted_192[..], plaintext[..]);
 }
 
 #[test]
@@ -117,4 +154,13 @@ fn large_data() {
     assert_ne!(encrypted_256[..], encrypted_128[..]);
     let decrypted_256 = cipher.cbc_decrypt(iv, &encrypted_256[..]);
     assert_eq!(decrypted_256[..], plaintext[..]);
+
+    // Test with AES-192
+    let key_192 = b"This is the key! 192 bit";
+    let cipher = Cipher::new_192(key_192);
+    let encrypted_192 = cipher.cbc_encrypt(iv, plaintext);
+    assert_eq!(encrypted_192.len(), encrypted_256.len());
+    assert_ne!(encrypted_192[..], encrypted_256[..]);
+    let decrypted_192 = cipher.cbc_decrypt(iv, &encrypted_192[..]);
+    assert_eq!(decrypted_192[..], plaintext[..]);
 }
