@@ -3,11 +3,8 @@
 [![Build](https://github.com/keepsimple1/libaes/workflows/Build%20and%20Test/badge.svg)](https://github.com/keepsimple1/libaes/actions)
 [![Cargo](https://img.shields.io/crates/v/libaes.svg)](https://crates.io/crates/libaes)
 
-This is a re-implementation of OpenSSL 1.1.1 AES core algorithms in safe Rust, with zero dependencies.
-
-My original motivation is to find a correct, fast and minimal AES library in Rust, so that I can easily use it to 
-interact with an existing data system that uses AES. But I was not able to find such a library so I decided to
-write one by porting AES core from [OpenSSL 1.1.1 stable](https://github.com/openssl/openssl/blob/OpenSSL_1_1_1-stable/crypto/aes/aes_core.c).
+This is a re-implementation of AES in safe Rust, with zero dependencies. The core algorithm is ported
+from AES core in [OpenSSL 1.1.1 stable](https://github.com/openssl/openssl/blob/OpenSSL_1_1_1-stable/crypto/aes/aes_core.c).
 This library strives to be:
 
 - Correct (as the original OpenSSL implementation)
@@ -15,7 +12,7 @@ This library strives to be:
 - Safe Rust code only.
 - Minimal: no dependencies.
 
-In this version, this library supports 128-bit and 256-bit keys with CBC mode only. Automatic padding is included.
+Currently, this library supports 128-bit, 192-bit and 256-bit keys with CBC mode only. Automatic padding is included.
 
 ## Examples
 
@@ -52,6 +49,6 @@ at your option.
 
 ### Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
+Contributions are welcome! Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the above license(s), shall be
 dual licensed as above, without any additional terms or conditions.
