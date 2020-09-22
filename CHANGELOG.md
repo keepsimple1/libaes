@@ -1,3 +1,7 @@
+# Version 0.3.0
+
+- Add support for 192-bit keys
+
 # Version 0.2.0
 
 - Add support for 256-bit keys
