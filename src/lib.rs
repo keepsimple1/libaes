@@ -12,7 +12,10 @@
 //! - Zero dependencies.
 //! - Fast (as the C version).
 //!
-//! Currently, this cipher supports 128-bit, 192-bit and 256-bit keys in CBC mode only.
+//! Currently, this cipher supports 128-bit, 192-bit and 256-bit keys with the following modes:
+//!
+//! - CBC mode: automatic padding is included.
+//! - CFB mode: no padding as it is not needed. Only 128-bit segment size (i.e. CFB128) is supported.
 //!
 //! # Examples
 //!
@@ -125,7 +128,7 @@ impl Cipher {
 
     /// Encrypt in CBC mode.
     ///
-    /// The input data is not modified. The output is a new Vec. Padding is done automatically.
+    /// The input data is not modified. The output is a new Vec. Padding (PKCS7) is included.
     /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
     ///
     /// This method works for all key sizes.
@@ -148,7 +151,7 @@ impl Cipher {
         while rest.len() >= AES_BLOCK_SIZE {
             let (block, remain) = rest.split_at_mut(AES_BLOCK_SIZE);
             xor_with_iv(block, my_iv);
-            aes_encrypt(block, &self.encrypt_key);
+            aes_encrypt(BlockBuf::InPlace(block), &self.encrypt_key);
             my_iv = block;
             rest = remain;
         }
@@ -192,6 +195,92 @@ impl Cipher {
         new
 
     }
+
+    /// Encrypt in CFB128 mode (i.e. CFB mode with 128-bit segment size).
+    ///
+    /// The input `data` is not modified. The output is a new Vec. No padding.
+    /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use libaes::Cipher;
+    ///
+    /// let my_key = b"This is the key!"; // key is 16 bytes, i.e. 128-bit
+    /// let plaintext = b"A plaintext"; // less than 16 bytes, will be padded automatically
+    /// let iv = b"This is 16 bytes";
+    /// let cipher = Cipher::new_128(my_key);
+    /// let encrypted = cipher.cfb128_encrypt(iv, plaintext);
+    /// ```
+    pub fn cfb128_encrypt(&self, iv: &[u8], data: &[u8]) -> Vec<u8>{
+        let mut new = data.to_vec();
+        let mut rest = &mut new[..];
+        let mut my_iv = iv;
+        let mut i = 0;
+
+        while rest.len() >= AES_BLOCK_SIZE {
+            let (block, remain) = rest.split_at_mut(AES_BLOCK_SIZE);
+            aes_encrypt(BlockBuf::FromTo((my_iv, block)), &self.encrypt_key);
+            let plain_text = &data[i..i + AES_BLOCK_SIZE];
+            xor_with_iv(block, plain_text);
+            my_iv = block;
+            rest = remain;
+            i += AES_BLOCK_SIZE;
+        }
+
+        if !rest.is_empty() { // rest.len() < AES_BLOCK_SIZE
+            let mut out_block = my_iv.to_vec();
+            aes_encrypt(BlockBuf::FromTo((my_iv, &mut out_block)), &self.encrypt_key);
+            xor_with_iv(rest, &out_block);
+        }
+
+        new
+    }
+
+    /// Decrypt in CFB128 mode (i.e. CFB mode with 128-bit segment size).
+    ///
+    /// The input `data` is not modified. The output is a new Vec. No padding.
+    /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use libaes::Cipher;
+    ///
+    /// let my_key = b"This is the key!";
+    /// let iv = b"This is 16 bytes";
+    /// let plaintext = b"This is plain text for AES";
+    /// let ciphertext = b"\x16\x94\x9e\xe0\x7c\x4b\x7a\xc2\x83\xca\x96\x4f\xae\
+    ///                    \x6a\x35\xbc\x8e\xdb\x19\x0a\x4d\x8d\x19\x59\x0f\x2a";
+    ///
+    /// let cipher = Cipher::new_128(my_key);
+    /// let decrypted = cipher.cfb128_decrypt(iv, ciphertext);
+    /// assert_eq!(plaintext, &decrypted[..]);
+    /// ```
+    pub fn cfb128_decrypt(&self, iv: &[u8], data: &[u8]) -> Vec<u8> {
+        let length = data.len();
+        let mut new = data.to_vec();
+        let mut my_iv = iv;
+        let mut i = 0;
+
+        while i + AES_BLOCK_SIZE <= length {
+            let block = &mut new[i..i + AES_BLOCK_SIZE];
+            aes_encrypt(BlockBuf::FromTo((my_iv, block)), &self.encrypt_key);
+            my_iv = &data[i..i + AES_BLOCK_SIZE];
+            xor_with_iv(block, my_iv);
+
+            i += AES_BLOCK_SIZE;
+        }
+
+        if i < length {
+            let remain = &mut new[i..length]; // remain.len() < AES_BLOCK_SIZE
+            let mut out_block = my_iv.to_vec();
+            aes_encrypt(BlockBuf::FromTo((my_iv, &mut out_block)), &self.encrypt_key);
+            xor_with_iv(remain, &out_block);
+        }
+
+        new
+    }
 }
 
 // PKCS7 padding: a new Vec is returned with padding.
@@ -213,8 +302,10 @@ fn unpad(padded: &mut Vec<u8>) {
     padded.truncate(sz - added as usize);
 }
 
+// bit-wise XOR `buf` slice with `iv` slice
+// `buf` length must be less or equal to `iv` length
 fn xor_with_iv(buf: &mut [u8], iv: &[u8]) {
-    for i in 0..AES_BLOCK_SIZE {
+    for i in 0..buf.len() {
         buf[i] ^= iv[i];
     }
 }
@@ -975,16 +1066,32 @@ fn aes_set_decrypt_key(user_key: &[u8], key_bits: u16, key: &mut AesKey) {
     }
 }
 
-// Encrypt a single block in-place
-fn aes_encrypt(buf: &mut [u8], key: &AesKey) {
+/// Block buffer(s) to operate a single block crypto
+enum BlockBuf<'a> {
+    InPlace(&'a mut [u8]), // Input and output are the same buffer
+    FromTo((&'a [u8], &'a mut [u8])), // Input and output are separate buffers
+}
+
+/// Encrypt a single block
+///
+/// Caller can provide `BlockBuf` to encrypt in-place or not. See `BlockBuf` definition.
+fn aes_encrypt(block_buf: BlockBuf, key: &AesKey) {
     let mut rk: &[u32]  = &key.rd_key[..];
 
     // map byte array block to cipher state
     // and add initial round key:
-    let mut s0 = get_u32(&buf[0..4]) ^ rk[0];
-    let mut s1 = get_u32(&buf[4..8]) ^ rk[1];
-    let mut s2 = get_u32(&buf[8..12]) ^ rk[2];
-    let mut s3 = get_u32(&buf[12..16]) ^ rk[3];
+    let (mut s0, mut s1, mut s2, mut s3, output) = match block_buf {
+        BlockBuf::InPlace(buf) => (get_u32(&buf[0..4]) ^ rk[0],
+                                   get_u32(&buf[4..8]) ^ rk[1],
+                                   get_u32(&buf[8..12]) ^ rk[2],
+                                   get_u32(&buf[12..16]) ^ rk[3],
+                                   buf),
+        BlockBuf::FromTo((in_buf, out_buf)) => (get_u32(&in_buf[0..4]) ^ rk[0],
+                                                get_u32(&in_buf[4..8]) ^ rk[1],
+                                                get_u32(&in_buf[8..12]) ^ rk[2],
+                                                get_u32(&in_buf[12..16]) ^ rk[3],
+                                                out_buf),
+    };
 
     // Nr - 1 full rounds:
     let mut r = key.rounds >> 1;
@@ -1060,28 +1167,28 @@ fn aes_encrypt(buf: &mut [u8], key: &AesKey) {
         (TE0[(t2 >>  8) as usize & 0xff] & 0x0000ff00) ^
         (TE1[(t3      ) as usize & 0xff] & 0x000000ff) ^
         rk[0];
-    put_u32(&mut buf[0..4], s0);
+    put_u32(&mut output[0..4], s0);
     let s1 =
         (TE2[(t1 >> 24) as usize       ] & 0xff000000) ^
         (TE3[(t2 >> 16) as usize & 0xff] & 0x00ff0000) ^
         (TE0[(t3 >>  8) as usize & 0xff] & 0x0000ff00) ^
         (TE1[(t0      ) as usize & 0xff] & 0x000000ff) ^
         rk[1];
-    put_u32(&mut buf[4..8], s1);
+    put_u32(&mut output[4..8], s1);
     let s2 =
         (TE2[(t2 >> 24) as usize       ] & 0xff000000) ^
         (TE3[(t3 >> 16) as usize & 0xff] & 0x00ff0000) ^
         (TE0[(t0 >>  8) as usize & 0xff] & 0x0000ff00) ^
         (TE1[(t1      ) as usize & 0xff] & 0x000000ff) ^
         rk[2];
-    put_u32(&mut buf[8..12], s2);
+    put_u32(&mut output[8..12], s2);
     let s3 =
         (TE2[(t3 >> 24) as usize       ] & 0xff000000) ^
         (TE3[(t0 >> 16) as usize & 0xff] & 0x00ff0000) ^
         (TE0[(t1 >>  8) as usize & 0xff] & 0x0000ff00) ^
         (TE1[(t2      ) as usize & 0xff] & 0x000000ff) ^
         rk[3];
-    put_u32(&mut buf[12..16], s3);
+    put_u32(&mut output[12..16], s3);
 }
 
 // Decrypt a single block in-place

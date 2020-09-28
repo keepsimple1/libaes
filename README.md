@@ -12,14 +12,14 @@ This library strives to be:
 - Safe Rust code only.
 - Minimal: no dependencies.
 
-Currently, this library supports 128-bit, 192-bit and 256-bit keys with CBC mode only. Automatic padding is included.
+Currently, this library supports 128-bit, 192-bit and 256-bit keys with CBC mode and CFB128 mode.
 
 ## Examples
 
 ```rust
 use libaes::Cipher;
 
-let my_key = b"This is the key!"; // key is 16 bytes
+let my_key = b"This is the key!"; // key is 128-bit (16 bytes)
 let plaintext = b"A plaintext";
 let iv = b"This is 16 bytes";
 
@@ -36,7 +36,7 @@ let decrypted = cipher.cbc_decrypt(iv, &encrypted[..]);
 
 ## Correctness
 
-We use a NIST test data to verify the cipher, see the [test code](tests/aes.rs).
+We use the test data in NIST Special Publication 800-38A to verify the cipher, see the [test code](tests/aes.rs).
 
 ## License
 
@@ -49,6 +49,8 @@ at your option.
 
 ### Contribution
 
-Contributions are welcome! Unless you explicitly state otherwise, any contribution intentionally submitted
+Contributions are welcome! Please open an issue in GitHub if any questions.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the above license(s), shall be
 dual licensed as above, without any additional terms or conditions.
