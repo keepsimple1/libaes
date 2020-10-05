@@ -10,7 +10,7 @@
 //!
 //! - Safe Rust code only.
 //! - Zero dependencies.
-//! - Fast (as the C version).
+//! - Fast (as OpenSSL 1.1.1).
 //!
 //! Currently, this cipher supports 128-bit, 192-bit and 256-bit keys with the following modes:
 //!

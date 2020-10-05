@@ -10,7 +10,7 @@ This library strives to be:
 - Correct (as the original OpenSSL implementation)
 - Fast (as OpenSSL 1.1.1)
 - Safe Rust code only.
-- Minimal: no dependencies.
+- Small: no dependencies.
 
 Currently, this library supports 128-bit, 192-bit and 256-bit keys with CBC mode and CFB128 mode.
 
