@@ -1,3 +1,7 @@
+# Version 0.4.0
+
+- Add support for CFB128 mode
+
 # Version 0.3.0
 
 - Add support for 192-bit keys
