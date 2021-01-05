@@ -38,6 +38,10 @@ let decrypted = cipher.cbc_decrypt(iv, &encrypted[..]);
 
 We use the test data in NIST Special Publication 800-38A to verify the cipher, see the [test code](tests/aes.rs).
 
+## Minimum Rust version
+
+Tested against Rust 1.46.0
+
 ## License
 
 Licensed under either of
