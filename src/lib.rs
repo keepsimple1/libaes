@@ -10,7 +10,7 @@
 //!
 //! - Safe Rust code only.
 //! - Zero dependencies.
-//! - Fast (thanks to algorithms in OpenSSL 1.1.1).
+//! - Fast (thanks to algorithms in OpenSSL 1.1.1, see some [benchmark](https://github.com/keepsimple1/libaes-utils/blob/main/README.md#Benchmark)).
 //!
 //! Currently, this cipher supports 128-bit, 192-bit and 256-bit keys with the following modes:
 //!
