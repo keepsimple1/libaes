@@ -12,10 +12,14 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install Rust version
+      run: rustup toolchain install 1.46.0
+    - name: Select Rust version
+      run: rustup default 1.46.0
     - name: Build
       run: cargo build
     - name: Run tests
