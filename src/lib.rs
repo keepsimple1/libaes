@@ -305,8 +305,9 @@ pub struct CipherError {
 }
 
 impl CipherError {
-    fn new(context: String, message: String) -> Self {
-        let context = vec![context];
+    fn new(context: &str, message: &str) -> Self {
+        let context = vec![context.to_string()];
+        let message = message.to_string();
         Self {
             context,
             message,
@@ -357,8 +358,8 @@ fn unpad(padded: &mut Vec<u8>) -> Result<(), CipherError> {
     let added = padded[sz - 1] as usize;
     if sz < added {
         return Err(CipherError::new(
-            "UnpadError".to_string(),
-            "Corrupted padded bytes, possible invalid key".to_string(),
+            "UnpadError",
+            "Corrupted padded bytes, possible invalid key",
         ));
     }
     padded.truncate(sz - added);
