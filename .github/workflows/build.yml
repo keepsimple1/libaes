@@ -20,6 +20,8 @@ jobs:
       run: rustup toolchain install 1.46.0
     - name: Select Rust version
       run: rustup default 1.46.0
+    - name: Install clippy
+      run: rustup component add clippy
     - name: Build
       run: cargo build
     - name: Run tests
