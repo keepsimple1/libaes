@@ -3,36 +3,18 @@
 [![Build](https://github.com/keepsimple1/libaes/workflows/Build%20and%20Test/badge.svg)](https://github.com/keepsimple1/libaes/actions)
 [![Cargo](https://img.shields.io/crates/v/libaes.svg)](https://crates.io/crates/libaes)
 
-This is a re-implementation of AES in safe Rust, with zero dependencies. The core algorithm is ported
-from AES core in [OpenSSL 1.1.1 stable](https://github.com/openssl/openssl/blob/OpenSSL_1_1_1-stable/crypto/aes/aes_core.c).
-This library strives to be:
+This is a small implementation of AES in safe Rust, with no dependencies. The core algorithm is ported
+from AES core of [OpenSSL 1.1.1 stable](https://github.com/openssl/openssl/blob/OpenSSL_1_1_1-stable/crypto/aes/aes_core.c).
+It is hardware-independent and fast (for example, as of January 2021, its AES-128 CBC mode is more than 3X faster than
+RustCrypto [`aes`](https://crates.io/crates/aes) + [`block-modes`](https://crates.io/crates/block-modes) crates,
+see [benchmark](https://github.com/keepsimple1/libaes-utils/blob/main/README.md#Benchmark)).
 
-- Correct (as the original OpenSSL implementation)
-- Fast (as OpenSSL 1.1.1)
-- Safe Rust code only.
-- Small: no dependencies.
+Currently, this library supports:
 
-Currently, this library supports 128-bit, 192-bit and 256-bit keys with CBC mode and CFB128 mode.
+- CBC mode: 128-bit, 192-bit and 256-bit keys
+- CFB128 mode
 
-## Examples
-
-```rust
-use libaes::Cipher;
-
-let my_key = b"This is the key!"; // key is 128-bit (16 bytes)
-let plaintext = b"A plaintext";
-let iv = b"This is 16 bytes";
-
-// Create a new cipher
-let cipher = Cipher::new_128(my_key);
-
-// Encryption
-let encrypted = cipher.cbc_encrypt(iv, plaintext);
-
-// Decryption
-let decrypted = cipher.cbc_decrypt(iv, &encrypted[..]);
-
-```
+See [Documentation](https://docs.rs/libaes/) for examples and [tests](tests).
 
 ## Correctness
 
