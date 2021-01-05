@@ -32,7 +32,7 @@ fn nist_verify_aes_128_cbc() {
     assert_eq!(encrypted.len(), len_without_padding + padding_size);
     assert_eq!(encrypted[..len_without_padding], ciphertext[..]);
 
-    let decrypted = cipher.cbc_decrypt(NIST_IV, &encrypted[..]);
+    let decrypted = cipher.cbc_decrypt(NIST_IV, &encrypted[..]).unwrap();
     assert_eq!(decrypted[..], plaintext[..]);
 }
 
@@ -41,7 +41,7 @@ fn nist_verify_aes_192_cbc() {
     // Verify the implementation's correctness using NIST Special Publication 800-38A:
     // http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf
     // Appendix F.2.3 and F.2.4 CBC Example Vectors for 192-bit
-    let plaintext  = b"\x6b\xc1\xbe\xe2\x2e\x40\x9f\x96\xe9\x3d\x7e\x11\x73\x93\x17\x2a\
+    let plaintext = b"\x6b\xc1\xbe\xe2\x2e\x40\x9f\x96\xe9\x3d\x7e\x11\x73\x93\x17\x2a\
                        \xae\x2d\x8a\x57\x1e\x03\xac\x9c\x9e\xb7\x6f\xac\x45\xaf\x8e\x51\
                        \x30\xc8\x1c\x46\xa3\x5c\xe4\x11\xe5\xfb\xc1\x19\x1a\x0a\x52\xef\
                        \xf6\x9f\x24\x45\xdf\x4f\x9b\x17\xad\x2b\x41\x7b\xe6\x6c\x37\x10";
@@ -56,7 +56,7 @@ fn nist_verify_aes_192_cbc() {
     assert_eq!(encrypted.len(), len_without_padding + padding_size);
     assert_eq!(encrypted[..len_without_padding], ciphertext[..]);
 
-    let decrypted = cipher.cbc_decrypt(NIST_IV, &encrypted[..]);
+    let decrypted = cipher.cbc_decrypt(NIST_IV, &encrypted[..]).unwrap();
     assert_eq!(decrypted[..], plaintext[..]);
 }
 
@@ -65,7 +65,7 @@ fn nist_verify_aes_256_cbc() {
     // Verify the implementation's correctness using NIST Special Publication 800-38A:
     // http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf
     // Appendix F.2.5 and F.2.6 CBC Example Vectors
-    let plaintext  = b"\x6b\xc1\xbe\xe2\x2e\x40\x9f\x96\xe9\x3d\x7e\x11\x73\x93\x17\x2a\
+    let plaintext = b"\x6b\xc1\xbe\xe2\x2e\x40\x9f\x96\xe9\x3d\x7e\x11\x73\x93\x17\x2a\
                        \xae\x2d\x8a\x57\x1e\x03\xac\x9c\x9e\xb7\x6f\xac\x45\xaf\x8e\x51\
                        \x30\xc8\x1c\x46\xa3\x5c\xe4\x11\xe5\xfb\xc1\x19\x1a\x0a\x52\xef\
                        \xf6\x9f\x24\x45\xdf\x4f\x9b\x17\xad\x2b\x41\x7b\xe6\x6c\x37\x10";
@@ -80,7 +80,7 @@ fn nist_verify_aes_256_cbc() {
     assert_eq!(encrypted.len(), len_without_padding + padding_size);
     assert_eq!(encrypted[..len_without_padding], ciphertext[..]);
 
-    let decrypted = cipher.cbc_decrypt(NIST_IV, &encrypted[..]);
+    let decrypted = cipher.cbc_decrypt(NIST_IV, &encrypted[..]).unwrap();
     assert_eq!(decrypted[..], plaintext[..]);
 }
 
@@ -157,7 +157,7 @@ fn small_data() {
     let iv = b"This is 16 bytes";
     let encrypted_128 = cipher.cbc_encrypt(iv, plaintext);
     assert_eq!(encrypted_128.len(), 16); // Verify padding
-    let decrypted_128 = cipher.cbc_decrypt(iv, &encrypted_128[..]);
+    let decrypted_128 = cipher.cbc_decrypt(iv, &encrypted_128[..]).unwrap();
     assert_eq!(decrypted_128[..], plaintext[..]);
 
     // Test with AES-256 CBC
@@ -166,7 +166,7 @@ fn small_data() {
     let encrypted_256 = cipher.cbc_encrypt(iv, plaintext);
     assert_eq!(encrypted_256.len(), 16); // Verify padding
     assert_ne!(encrypted_256[..], encrypted_128[..]); // Verify AES-256 is different from AES-128
-    let decrypted_256 = cipher.cbc_decrypt(iv, &encrypted_256[..]);
+    let decrypted_256 = cipher.cbc_decrypt(iv, &encrypted_256[..]).unwrap();
     assert_eq!(decrypted_256[..], plaintext[..]);
 
     // Test with AES-192 CBC
@@ -175,7 +175,7 @@ fn small_data() {
     let encrypted_192 = cipher.cbc_encrypt(iv, plaintext);
     assert_eq!(encrypted_192.len(), 16); // Verify padding
     assert_ne!(encrypted_192[..], encrypted_256[..]); // Verify AES-192 is different from AES-256
-    let decrypted_192 = cipher.cbc_decrypt(iv, &encrypted_192[..]);
+    let decrypted_192 = cipher.cbc_decrypt(iv, &encrypted_192[..]).unwrap();
     assert_eq!(decrypted_192[..], plaintext[..]);
 
     // Test with AES-128 CFB128
@@ -231,7 +231,7 @@ fn large_data() {
                     And that has made all the difference.";
     let cipher = Cipher::new_128(key_128);
     let encrypted_128 = cipher.cbc_encrypt(iv, plaintext);
-    let decrypted_128 = cipher.cbc_decrypt(iv, &encrypted_128[..]);
+    let decrypted_128 = cipher.cbc_decrypt(iv, &encrypted_128[..]).unwrap();
     assert_eq!(decrypted_128[..], plaintext[..]);
 
     // Test with AES-256
@@ -240,7 +240,7 @@ fn large_data() {
     let encrypted_256 = cipher.cbc_encrypt(iv, plaintext);
     assert_eq!(encrypted_256.len(), encrypted_128.len());
     assert_ne!(encrypted_256[..], encrypted_128[..]);
-    let decrypted_256 = cipher.cbc_decrypt(iv, &encrypted_256[..]);
+    let decrypted_256 = cipher.cbc_decrypt(iv, &encrypted_256[..]).unwrap();
     assert_eq!(decrypted_256[..], plaintext[..]);
 
     // Test with AES-192
@@ -249,7 +249,7 @@ fn large_data() {
     let encrypted_192 = cipher.cbc_encrypt(iv, plaintext);
     assert_eq!(encrypted_192.len(), encrypted_256.len());
     assert_ne!(encrypted_192[..], encrypted_256[..]);
-    let decrypted_192 = cipher.cbc_decrypt(iv, &encrypted_192[..]);
+    let decrypted_192 = cipher.cbc_decrypt(iv, &encrypted_192[..]).unwrap();
     assert_eq!(decrypted_192[..], plaintext[..]);
 
     // Test with AES-128 CFB128
@@ -274,4 +274,24 @@ fn large_data() {
     assert_ne!(encrypted_256[..], encrypted_192[..]);
     let decrypted_256 = cipher.cfb128_decrypt(iv, &encrypted_256);
     assert_eq!(decrypted_256[..], plaintext[..]);
+}
+
+#[test]
+fn invalid_key_decrypt() {
+    // Encrypt with the original key
+    let key_128 = b"k123456789012345"; // key is 16 bytes
+    let cipher = Cipher::new_128(key_128);
+    let plaintext = b"m2"; // a very small message
+    let iv = b"v123456789012345";
+    let encrypted_128 = cipher.cbc_encrypt(iv, plaintext);
+    assert_eq!(encrypted_128.len(), 16); // Verify padding
+
+    // Try to decrypt with an invalid key
+    let invalid_key = b"k123456789012347";
+    let cipher = Cipher::new_128(invalid_key);
+    let decrypted_128 = cipher.cbc_decrypt(iv, &encrypted_128[..]);
+    assert!(decrypted_128.is_err());
+    let err = decrypted_128.unwrap_err();
+    let err_string = format!("{}", err);
+    assert!(err_string.contains("libaes.cbc_decrypt.UnpadError"));
 }
