@@ -1,3 +1,7 @@
+# Version 0.5.0
+- API change: return an error type for cbc_decrypt
+- Update README
+
 # Version 0.4.0
 
 - Add support for CFB128 mode

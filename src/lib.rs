@@ -10,7 +10,7 @@
 //!
 //! - Safe Rust code only.
 //! - Zero dependencies.
-//! - Fast (as OpenSSL 1.1.1).
+//! - Fast (thanks to algorithms in OpenSSL 1.1.1, see some [benchmark](https://github.com/keepsimple1/libaes-utils/blob/main/README.md#Benchmark)).
 //!
 //! Currently, this cipher supports 128-bit, 192-bit and 256-bit keys with the following modes:
 //!
@@ -337,6 +337,9 @@ impl std::fmt::Display for CipherError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.text().as_str())
     }
+}
+
+impl std::error::Error for CipherError {
 }
 
 // PKCS7 padding: a new Vec is returned with padding.
