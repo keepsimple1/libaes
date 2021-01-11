@@ -1,3 +1,6 @@
+# Version 0.6.0
+- Reverse API change in 0.5.0
+
 # Version 0.5.0
 - API change: return an error type for cbc_decrypt
 - Update README
