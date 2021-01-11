@@ -35,7 +35,7 @@
 //! let encrypted = cipher.cbc_encrypt(iv, plaintext);
 //!
 //! // Decryption
-//! let decrypted = cipher.cbc_decrypt(iv, &encrypted[..]).unwrap();
+//! let decrypted = cipher.cbc_decrypt(iv, &encrypted[..]);
 //! ```
 
 #![forbid(unsafe_code)]
@@ -164,8 +164,8 @@ impl Cipher {
 
     /// Decrypt in CBC mode.
     ///
-    /// The input data is not modified. The output is a new Vec if successful, otherwise an error
-    /// is returned. Padding is handled automatically.
+    /// The input data is not modified. The output is a new Vec. Padding is handled automatically.
+    /// If decrypt was not successful, the output is an empty Vec.
     ///
     /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
     ///
@@ -183,10 +183,10 @@ impl Cipher {
     ///                    \xa3\x16\xb6\xd4\x35\x6d\x2b\x6f\x49\xff\x9e\x3c\xe4\x66\x16\xb9";
     ///
     /// let cipher = Cipher::new_128(my_key);
-    /// let decrypted = cipher.cbc_decrypt(iv, ciphertext).unwrap();
+    /// let decrypted = cipher.cbc_decrypt(iv, ciphertext);
     /// assert_eq!(plaintext, &decrypted[..]);
     /// ```
-    pub fn cbc_decrypt(&self, iv: &[u8], data: &[u8]) -> Result<Vec<u8>, CipherError> {
+    pub fn cbc_decrypt(&self, iv: &[u8], data: &[u8]) -> Vec<u8> {
         let length = data.len();
         let mut new = data.to_vec();
         let mut my_iv = iv;
@@ -197,10 +197,8 @@ impl Cipher {
             xor_with_iv(block, my_iv);
             my_iv = &data[i..i + AES_BLOCK_SIZE];
         }
-        match unpad(&mut new) {
-            Ok(()) => Ok(new),
-            Err(e) => Err(e.add_context("cbc_decrypt")),
-        }
+        unpad(&mut new);
+        new
     }
 
     /// Encrypt in CFB128 mode (i.e. CFB mode with 128-bit segment size).
@@ -290,58 +288,6 @@ impl Cipher {
     }
 }
 
-/// The only error type reported by `libaes`. It is minimum and has a context list
-/// that shows a simplified compact backtrace.
-///
-/// Example output:
-///
-/// ```text
-/// libaes.cbc_decrypt.UnpadError: Corrupted padded bytes, possible invalid key
-/// ```
-#[derive(Debug)]
-pub struct CipherError {
-    context: Vec<String>, // acts as a backtrace
-    message: String,
-}
-
-impl CipherError {
-    fn new(context: &str, message: &str) -> Self {
-        let context = vec![context.to_string()];
-        let message = message.to_string();
-        Self {
-            context,
-            message,
-        }
-    }
-
-    /// Return a String representation of this error.
-    ///
-    /// This string is same as what `fmt::Display` trait outputs.
-    fn text(&self) -> String {
-        let mut context = "".to_string();
-        for c in self.context.iter() {
-            context += ".";
-            context += c;
-        }
-        format!("libaes{}: {}", &context, &self.message)
-    }
-
-    // Add a new context at the top of the context list
-    fn add_context(mut self, context: &str) -> Self {
-        self.context.insert(0, context.to_string());
-        self
-    }
-}
-
-impl std::fmt::Display for CipherError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.text().as_str())
-    }
-}
-
-impl std::error::Error for CipherError {
-}
-
 // PKCS7 padding: a new Vec is returned with padding.
 fn pad(input: &[u8]) -> Vec<u8> {
     let sz = input.len();
@@ -355,18 +301,12 @@ fn pad(input: &[u8]) -> Vec<u8> {
 }
 
 // PKCS7 un-padding in-place: the input Vec is truncated as needed if successful,
-// otherwise the input is not modified and an error is returned.
-fn unpad(padded: &mut Vec<u8>) -> Result<(), CipherError> {
+// otherwise truncated to empty.
+fn unpad(padded: &mut Vec<u8>) {
     let sz = padded.len();
     let added = padded[sz - 1] as usize;
-    if sz < added {
-        return Err(CipherError::new(
-            "UnpadError",
-            "Corrupted padded bytes, possible invalid key",
-        ));
-    }
-    padded.truncate(sz - added);
-    Ok(())
+    let unpad_sz = if sz > added { sz - added } else { 0 };
+    padded.truncate(unpad_sz);
 }
 
 // bit-wise XOR `buf` slice with `iv` slice
