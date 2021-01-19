@@ -1,3 +1,6 @@
+# Version 0.6.1
+- Fix a typo
+
 # Version 0.6.0
 - Reverse API change in 0.5.0
 
