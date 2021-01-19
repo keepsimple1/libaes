@@ -165,7 +165,7 @@ impl Cipher {
     /// Decrypt in CBC mode.
     ///
     /// The input data is not modified. The output is a new Vec. Padding is handled automatically.
-    /// If decrypt encounted unexpected errors, the output is an empty Vec.
+    /// If decrypt encountered unexpected errors, the output is an empty Vec.
     ///
     /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
     ///
