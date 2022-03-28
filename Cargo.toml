@@ -7,5 +7,5 @@ description = "AES cipher in safe Rust with no dependencies"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/keepsimple1/libaes"
 documentation = "https://docs.rs/libaes"
-keywords = ["crypto", "aes", "ciphers"]
+keywords = ["crypto", "aes", "block-cipher"]
 readme = "README.md"
