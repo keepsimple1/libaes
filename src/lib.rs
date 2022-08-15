@@ -165,7 +165,8 @@ impl Cipher {
     /// Decrypt in CBC mode.
     ///
     /// The input data is not modified. The output is a new Vec. Padding is handled automatically.
-    /// If decrypt encountered unexpected errors, the output is an empty Vec.
+    /// If decrypt encountered unexpected errors, the output is an empty Vec. If the cipher has
+    /// the wrong key, the output will either be a wrong plaintext or an empty Vec.
     ///
     /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
     ///
@@ -188,6 +189,9 @@ impl Cipher {
     /// ```
     pub fn cbc_decrypt(&self, iv: &[u8], data: &[u8]) -> Vec<u8> {
         let length = data.len();
+        if (length % AES_BLOCK_SIZE) != 0 {
+            return Vec::new(); // data is invalid.
+        }
         let mut new = data.to_vec();
         let mut my_iv = iv;
 

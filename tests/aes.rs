@@ -294,3 +294,13 @@ fn invalid_key_decrypt() {
     let decrypted_128 = cipher.cbc_decrypt(iv, &encrypted_128[..]);
     assert!(decrypted_128.is_empty());
 }
+
+#[test]
+fn invalid_input_decrypt() {
+    let key_128 = b"k123456789012345";
+    let cipher = Cipher::new_128(key_128);
+    let iv = b"v123456789012345";
+    let bad_ciphertext = b"foo";
+    let decrypted = cipher.cbc_decrypt(iv, &bad_ciphertext[..]);
+    assert!(decrypted.is_empty());
+}
