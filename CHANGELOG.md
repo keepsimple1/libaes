@@ -1,3 +1,9 @@
+# Version 0.6.3
+- check input length in decrypt (#17)
+
+# Verison 0.6.2
+- add keyword and category (#15)
+
 # Version 0.6.1
 - Fix a typo
 
