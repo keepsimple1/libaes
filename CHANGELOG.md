@@ -1,3 +1,6 @@
+# Version 0.6.4
+- Enable cargo fmt check (#19)
+
 # Version 0.6.3
 - check input length in decrypt (#17)
 
