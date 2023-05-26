@@ -336,6 +336,9 @@ fn pad(input: &[u8]) -> Vec<u8> {
 // otherwise truncated to empty.
 fn unpad(padded: &mut Vec<u8>) {
     let sz = padded.len();
+    if sz < AES_BLOCK_SIZE {
+        return; // Should be at least one block length.
+    }
     let added = padded[sz - 1] as usize;
     let unpad_sz = if sz > added { sz - added } else { 0 };
     padded.truncate(unpad_sz);

@@ -303,4 +303,8 @@ fn invalid_input_decrypt() {
     let bad_ciphertext = b"foo";
     let decrypted = cipher.cbc_decrypt(iv, &bad_ciphertext[..]);
     assert!(decrypted.is_empty());
+
+    let empty_ciphertext = b"";
+    let decrypted = cipher.cbc_decrypt(iv, &empty_ciphertext[..]);
+    assert!(decrypted.is_empty());
 }
