@@ -149,6 +149,19 @@ fn nist_verify_aes_256_cfb_128() {
 }
 
 #[test]
+fn empty_data() {
+    // Encrypt an input that is empty, i.e. zero bytes.
+    let key_128 = b"This is the key!"; // key is 16 bytes
+    let cipher = Cipher::new_128(key_128);
+    let plaintext = b""; // less than 16 bytes
+    let iv = b"This is 16 bytes";
+    let encrypted_128 = cipher.cbc_encrypt(iv, plaintext);
+    assert_eq!(encrypted_128.len(), 16); // Verify padding
+    let decrypted_128 = cipher.cbc_decrypt(iv, &encrypted_128[..]);
+    assert_eq!(decrypted_128, plaintext);
+}
+
+#[test]
 fn small_data() {
     // Encrypt and decrypt data that is smaller than 1 AES block size.
     let key_128 = b"This is the key!"; // key is 16 bytes
