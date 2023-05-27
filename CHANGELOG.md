@@ -1,3 +1,8 @@
+# Version 0.6.5
+- Handles empty data gracefully in unpad() (#22)
+- Fix build warnings in recent Rust 1.69 (#23)
+- Add a test case for empty data in CBC (#24)
+
 # Version 0.6.4
 - Enable cargo fmt check (#19)
 
