@@ -709,7 +709,7 @@ fn aes_set_encrypt_key(user_key: &[u8], key_bits: u16, key: &mut AesKey) {
                 ^ (TE2[(temp >> 16) & 0xff] & 0xff000000)
                 ^ (TE3[(temp >> 8) & 0xff] & 0x00ff0000)
                 ^ (TE0[(temp) & 0xff] & 0x0000ff00)
-                ^ (TE1[(temp >> 24)] & 0x000000ff)
+                ^ (TE1[temp >> 24] & 0x000000ff)
                 ^ RCON[i];
             rk[5] = rk[1] ^ rk[4];
             rk[6] = rk[2] ^ rk[5];
@@ -735,7 +735,7 @@ fn aes_set_encrypt_key(user_key: &[u8], key_bits: u16, key: &mut AesKey) {
                 ^ (TE2[(temp >> 16) & 0xff] & 0xff000000)
                 ^ (TE3[(temp >> 8) & 0xff] & 0x00ff0000)
                 ^ (TE0[(temp) & 0xff] & 0x0000ff00)
-                ^ (TE1[(temp >> 24)] & 0x000000ff)
+                ^ (TE1[temp >> 24] & 0x000000ff)
                 ^ RCON[i];
             rk[7] = rk[1] ^ rk[6];
             rk[8] = rk[2] ^ rk[7];
@@ -764,7 +764,7 @@ fn aes_set_encrypt_key(user_key: &[u8], key_bits: u16, key: &mut AesKey) {
                 ^ (TE2[(temp >> 16) & 0xff] & 0xff000000)
                 ^ (TE3[(temp >> 8) & 0xff] & 0x00ff0000)
                 ^ (TE0[(temp) & 0xff] & 0x0000ff00)
-                ^ (TE1[(temp >> 24)] & 0x000000ff)
+                ^ (TE1[temp >> 24] & 0x000000ff)
                 ^ RCON[i];
             rk[9] = rk[1] ^ rk[8];
             rk[10] = rk[2] ^ rk[9];
@@ -777,7 +777,7 @@ fn aes_set_encrypt_key(user_key: &[u8], key_bits: u16, key: &mut AesKey) {
 
             let temp: usize = rk[11] as usize;
             rk[12] = rk[4]
-                ^ (TE2[(temp >> 24)] & 0xff000000)
+                ^ (TE2[temp >> 24] & 0xff000000)
                 ^ (TE3[(temp >> 16) & 0xff] & 0x00ff0000)
                 ^ (TE0[(temp >> 8) & 0xff] & 0x0000ff00)
                 ^ (TE1[(temp) & 0xff] & 0x000000ff);
