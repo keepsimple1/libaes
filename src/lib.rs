@@ -163,8 +163,11 @@ impl Cipher {
         }
     }
 
-    /// Changes the `auto_padding` setting of the cipher. Used in CBC mode.
-    /// Note that `auto_padding` is ignored in CFB mode.
+    /// Changes the `auto_padding` setting of the cipher. The default value is `true`.
+    ///
+    /// When setting it to `false`, the input data of CBC encryption must be multiple of `AES_BLOCK_SIZE`.
+    ///
+    /// And note that `auto_padding` is ignored in CFB mode.
     pub fn set_auto_padding(&mut self, auto_padding: bool) {
         self.auto_padding = auto_padding;
     }
