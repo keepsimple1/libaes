@@ -1,3 +1,8 @@
+# Version 0.7.0
+No breaking changes. Bumped the minor version because of a new API of padding.
+
+- support changing auto_padding setting in CBC mode (#30)
+
 # Version 0.6.5
 - Handles empty data gracefully in unpad() (#22)
 - Fix build warnings in recent Rust 1.69 (#23)
