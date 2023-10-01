@@ -321,3 +321,28 @@ fn invalid_input_decrypt() {
     let decrypted = cipher.cbc_decrypt(iv, &empty_ciphertext[..]);
     assert!(decrypted.is_empty());
 }
+
+#[test]
+fn cbc_without_auto_padding() {
+    let plaintext: &[u8; 16] = b"\x59\xf9\x62\x18\xd8\xec\xca\xb2\x77\xed\x47\x7a\x33\xdc\xb7\xf3";
+    let ciphertext: &[u8; 16] = b"\x9f\x27\x07\xbc\x98\xbb\x57\x81\xd4\xe7\xb4\x61\xbf\xfe\x62\x70";
+    let key: &[u8; 16] = b"\x64\xc5\xfd\x55\xdd\x3a\xd9\x88\x32\x5b\xaa\xec\x52\x43\xdb\x98";
+    let iv: &[u8; 16] = b"\x00\x04\x00\x8c\x00\x16\x58\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+
+    // create a cipher and disable its auto_padding.
+    let mut aes: Cipher = Cipher::new_128(key);
+    aes.set_auto_padding(false);
+
+    // verify decrypt.
+    let decrypted = aes.cbc_decrypt(iv, ciphertext);
+    assert_eq!(&decrypted, plaintext);
+
+    // verify encrypt.
+    let encrypted = aes.cbc_encrypt(iv, plaintext);
+    assert_eq!(&encrypted, ciphertext);
+
+    // encrypt returns empty if the plaintext is not valid block-sized.
+    let invalidblock: &[u8; 10] = b"\x59\xf9\x62\x18\xd8\xec\xca\xb2\x77\xed";
+    let encrypted = aes.cbc_encrypt(iv, invalidblock);
+    assert!(encrypted.is_empty());
+}

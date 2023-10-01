@@ -58,6 +58,9 @@ const RD_KEY_MAX_SIZE: usize = 4 * (AES_MAX_ROUNDS + 1);
 pub struct Cipher {
     encrypt_key: AesKey,
     decrypt_key: AesKey,
+
+    /// By default, this is true. It is only used in CBC mode now.
+    auto_padding: bool,
 }
 
 impl Cipher {
@@ -90,6 +93,7 @@ impl Cipher {
         Cipher {
             encrypt_key,
             decrypt_key,
+            auto_padding: true,
         }
     }
 
@@ -122,6 +126,7 @@ impl Cipher {
         Cipher {
             encrypt_key,
             decrypt_key,
+            auto_padding: true,
         }
     }
 
@@ -154,7 +159,20 @@ impl Cipher {
         Cipher {
             encrypt_key,
             decrypt_key,
+            auto_padding: true,
         }
+    }
+
+    /// Changes the `auto_padding` setting of the cipher. Used in CBC mode.
+    /// Note that `auto_padding` is ignored in CFB mode.
+    pub fn set_auto_padding(&mut self, auto_padding: bool) {
+        self.auto_padding = auto_padding;
+    }
+
+    /// Returns the `auto_padding` setting in this cipher. If true,
+    /// the padding is done in PKCS7.
+    pub fn auto_padding(&self) -> bool {
+        self.auto_padding
     }
 
     /// Encrypt in CBC mode.
@@ -163,6 +181,10 @@ impl Cipher {
     /// `iv` is a 16-byte slice. Panics if `iv` is less than 16 bytes.
     ///
     /// This method works for all key sizes.
+    ///
+    /// Note: auto padding is enabled by default. If the cipher disabled auto padding, this
+    /// method will not add padding. If the input data length is not multiple of AES_BLOCK_SIZE,
+    /// the output will be an empty Vec (i.e. error).
     ///
     /// # Examples
     ///
@@ -176,7 +198,14 @@ impl Cipher {
     /// let encrypted = cipher.cbc_encrypt(iv, plaintext);
     /// ```
     pub fn cbc_encrypt(&self, iv: &[u8], data: &[u8]) -> Vec<u8> {
-        let mut padded = pad(data);
+        let mut padded = if self.auto_padding {
+            pad(data)
+        } else if data.len() % AES_BLOCK_SIZE == 0 {
+            data.to_vec()
+        } else {
+            return Vec::new();
+        };
+
         let mut my_iv = iv;
         let mut rest = &mut padded[..];
         while rest.len() >= AES_BLOCK_SIZE {
@@ -228,7 +257,9 @@ impl Cipher {
             xor_with_iv(block, my_iv);
             my_iv = &data[i..i + AES_BLOCK_SIZE];
         }
-        unpad(&mut new);
+        if self.auto_padding {
+            unpad(&mut new);
+        }
         new
     }
 
